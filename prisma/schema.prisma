@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "mysql"
+	url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+	ADMIN
+	USER
+}
+
+/// 用户表
+model User {
+	id           Int            @id @default(autoincrement())
+	/// 用户邮箱
+	email        String         @unique @db.VarChar(30)
+	/// 用户密码
+	password     String         @db.VarChar(64)
+	/// 用户头像
+	avatar       String         @db.VarChar(64)
+	/// 用户昵称
+	nickname     String         @db.VarChar(20)
+	/// 用户角色
+	role         UserRole       @default(USER)
+	createAt     DateTime       @map("create_at") @db.DateTime()
+	updateAt     DateTime       @updatedAt @map("update_at")
+	meetings     Meeting[]
+	meetingUsers MeetingUsers[]
+
+	@@map("user")
+}
+
+/// 会议室
+model Room {
+	id       Int       @id @default(autoincrement())
+	/// 会议室名称
+	title    String    @unique @db.VarChar(20)
+	/// 会议室容量
+	cap      Int       @db.TinyInt()
+	/// 会议室详细地址
+	address  String    @db.VarChar(20)
+	/// 是否禁用
+	disabled Boolean   @default(false)
+	meetings Meeting[]
+
+	@@map("room")
+}
+
+/// 会议
+model Meeting {
+	id           Int            @id @default(autoincrement())
+	/// 会议标题
+	title        String         @db.VarChar(60)
+	/// 会议开始时间 YYYY-MM-DD
+	startDate    String         @map("start_date") @db.Char(10)
+	/// 会议开始时间 HH:mm
+	startTime    String         @map("start_time") @db.Char(5)
+	endDate      String         @map("end_date") @db.Char(10)
+	endTime      String         @map("end_time") @db.Char(5)
+	/// 会议描述
+	description  String?        @db.Text
+	/// 提醒类型
+	remindId     Int            @map("remind_id")
+	/// 会议重复频次
+	frequencyId  Int            @map("frequency_id")
+	/// 会议创建人
+	userId       Int            @map("user_id")
+	user         User           @relation(fields: [userId], references: [id])
+	/// 会议地点
+	roomId       Int            @map("room_id")
+	room         Room           @relation(fields: [roomId], references: [id])
+	createAt     DateTime       @map("create_at") @db.DateTime()
+	updateAt     DateTime       @updatedAt @map("update_at")
+	meetingUsers MeetingUsers[]
+
+	@@map("meeting")
+}
+
+/// 会议参会人
+model MeetingUsers {
+	id        Int     @id @default(autoincrement())
+	meetingId Int     @map("meeting_id")
+	meeting   Meeting @relation(fields: [meetingId], references: [id])
+	userId    Int     @map("user_id")
+	user      User    @relation(fields: [userId], references: [id])
+	/// 是否已经参加
+	signin    Boolean @default(false)
+
+	@@map("meeting_users")
+}
