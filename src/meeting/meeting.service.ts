@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../user/user.service';
@@ -108,5 +112,35 @@ export class MeetingService {
         },
       },
     });
+  }
+
+  /**
+   * 查询会议详情
+   * @param meetingId
+   */
+  async findMeetingById(meetingId: number) {
+    return this.prismaService.meeting.findUnique({ where: { id: meetingId } });
+  }
+
+  /**
+   * 邀请加入会议
+   * @param currentUserId
+   * @param meetingId
+   */
+  async invite(currentUserId: number, meetingId: number) {
+    const meeting = await this.findMeetingById(meetingId);
+    if (!meeting) {
+      throw new NotFoundException('会议不存在');
+    }
+    const isExist = await this.prismaService.meetingUsers.findFirst({
+      where: { userId: currentUserId, meetingId },
+    });
+    if (isExist) {
+      throw new ConflictException('您已经在此会议中');
+    }
+    const result = await this.prismaService.meetingUsers.create({
+      data: { userId: currentUserId, meetingId, signin: false },
+    });
+    return result.id;
   }
 }

@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
 } from '@nestjs/common';
@@ -27,5 +28,12 @@ export class MeetingController {
   @Put()
   async create(@Body() createMeetingDto: CreateMeetingDto) {
     return this.meetingService.createMeeting(createMeetingDto);
+  }
+  @Post('/invite/:meetingId')
+  async invite(
+    @User('userId') userId: number,
+    @Param('meetingId') meetingId: number,
+  ) {
+    return this.meetingService.invite(userId, meetingId);
   }
 }
