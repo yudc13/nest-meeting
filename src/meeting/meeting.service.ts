@@ -9,6 +9,7 @@ import { UserService } from '../user/user.service';
 import { getPageParams } from '../utils';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { QueryMeetingDto } from './dto/query-meeting.dto';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class MeetingService {
@@ -23,7 +24,8 @@ export class MeetingService {
    * @param queryMeetingDto
    */
   async findMeetings(currentUserId: number, queryMeetingDto: QueryMeetingDto) {
-    let { current, pageSize, userId, roomId } = queryMeetingDto;
+    const { current, pageSize, roomId } = queryMeetingDto;
+    let userId = queryMeetingDto.userId;
     const where: Prisma.MeetingWhereInput = { OR: [] };
     const userInfo = await this.userService.findUserById(currentUserId);
     // 不是管理员 只能查看自己创建/参与的会议
@@ -47,31 +49,16 @@ export class MeetingService {
       where,
       include: {
         room: {
-          select: {
-            id: true,
-            title: true,
-            address: true,
-            cap: true,
-          },
+          select: { id: true, title: true, address: true, cap: true },
         },
         user: {
-          select: {
-            id: true,
-            email: true,
-            avatar: true,
-            nickname: true,
-          },
+          select: { id: true, email: true, avatar: true, nickname: true },
         },
         meetingUsers: {
           select: {
             signin: true,
             user: {
-              select: {
-                id: true,
-                email: true,
-                avatar: true,
-                nickname: true,
-              },
+              select: { id: true, email: true, avatar: true, nickname: true },
             },
           },
         },
@@ -120,6 +107,44 @@ export class MeetingService {
    */
   async findMeetingById(meetingId: number) {
     return this.prismaService.meeting.findUnique({ where: { id: meetingId } });
+  }
+
+  /**
+   * 验证用户是否是空闲的
+   * @param userId
+   * @param meetingId
+   */
+  async validateUserIsFree(userId: number, meetingId: number) {
+    const select: Prisma.MeetingSelect = {
+      id: true,
+      startDate: true,
+      startTime: true,
+      endDate: true,
+      endTime: true,
+    };
+    // 查询和改用户相关的会议
+    const userRelMeetings = await this.prismaService.meeting.findMany({
+      select,
+      where: { meetingUsers: { some: { userId } } },
+    });
+    if (userRelMeetings.length === 0) {
+      return true;
+    }
+    const meeting = await this.prismaService.meeting.findUnique({
+      select,
+      where: { id: meetingId },
+    });
+    // 判断时间是否有冲突
+    const isConflict = userRelMeetings.some((um) => {
+      const fullStartDate = `${um.startDate} ${um.startTime}`;
+      const fullEndDate = `${um.endDate} ${um.endTime}`;
+      const meetingFullStartDate = `${meeting.startDate} ${meeting.startTime}`;
+      return (
+        dayjs(meetingFullStartDate).isAfter(fullStartDate) &&
+        dayjs(meetingFullStartDate).isBefore(fullEndDate)
+      );
+    });
+    return !isConflict;
   }
 
   /**

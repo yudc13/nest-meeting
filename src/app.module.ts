@@ -17,6 +17,7 @@ import { JwtMiddleware } from './common/middleware/jwt.middleware';
 import { RoomModule } from './room/room.module';
 import { MeetingModule } from './meeting/meeting.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { GatewayModule } from './gateway/gateway.module';
     RoomModule,
     MeetingModule,
     GatewayModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
