@@ -6,10 +6,80 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { QueryRoomDto } from './dto/query-room.dto';
+import { getPageParams } from '../utils';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RoomService {
   constructor(private readonly prismaService: PrismaService) {}
+
+  /**
+   * 查询会议室列表
+   * @param queryRoomDto
+   */
+  async getRoomList(queryRoomDto: QueryRoomDto) {
+    const { current, pageSize, cap, isIdle, startDate, endDate } = queryRoomDto;
+    const { skip, take } = getPageParams(current, pageSize);
+    const where: Prisma.RoomWhereInput = {};
+
+    if (cap && cap.length > 0) {
+      const [min, max] = cap;
+      const and: Prisma.RoomWhereInput[] = [{ cap: { gte: min } }];
+      // -1 无穷大
+      if (max !== -1) {
+        and.push({
+          cap: { lte: max },
+        });
+      }
+      where.AND = and;
+    }
+
+    // 需要查询空闲的会议室
+    if (isIdle !== undefined && startDate && endDate) {
+      const meetingWhere: Prisma.MeetingWhereInput = {};
+      meetingWhere.OR = [
+        {
+          startDate: {
+            gte: startDate,
+            lt: endDate,
+          },
+        },
+        {
+          endDate: {
+            gt: startDate,
+            lte: endDate,
+          },
+        },
+      ];
+      const meetings = await this.prismaService.meeting.findMany({
+        select: { roomId: true },
+        where: meetingWhere,
+      });
+      const roomIds = meetings.map((m) => m.roomId);
+      where.id = {
+        [isIdle ? 'notIn' : 'in']: roomIds,
+      };
+    }
+
+    const count = await this.prismaService.room.count({ where });
+    if (count === 0) {
+      return {
+        total: count,
+        list: [],
+      };
+    }
+    const list = await this.prismaService.room.findMany({
+      where,
+      skip,
+      take,
+      orderBy: [{ id: 'asc' }],
+    });
+    return {
+      total: count,
+      list,
+    };
+  }
 
   /**
    * 创建会议室

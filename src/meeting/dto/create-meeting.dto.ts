@@ -17,13 +17,7 @@ export class CreateMeetingDto {
   startDate: string;
   @IsString()
   @IsNotEmpty()
-  startTime: string;
-  @IsString()
-  @IsNotEmpty()
   endDate: string;
-  @IsString()
-  @IsNotEmpty()
-  endTime: string;
   @IsString()
   @IsOptional()
   description: string;

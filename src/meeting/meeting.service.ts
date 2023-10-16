@@ -9,7 +9,7 @@ import { UserService } from '../user/user.service';
 import { getPageParams } from '../utils';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
 import { QueryMeetingDto } from './dto/query-meeting.dto';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class MeetingService {
@@ -65,11 +65,7 @@ export class MeetingService {
       },
       skip,
       take,
-      orderBy: [
-        { startDate: 'asc' },
-        { startTime: 'asc' },
-        { createAt: 'desc' },
-      ],
+      orderBy: [{ startDate: 'asc' }, { createAt: 'desc' }],
     });
     return {
       total: count,
@@ -87,6 +83,8 @@ export class MeetingService {
     return this.prismaService.meeting.create({
       data: {
         ...meetingData,
+        // startDate: dayjs(startDate).format('YYYY-MM-DD HH:mm'),
+        // endDate: dayjs(endDate).format('YYYY-MM-DD HH:mm'),
         createAt: new Date(),
         user: {
           connect: { id: userId },
@@ -118,9 +116,7 @@ export class MeetingService {
     const select: Prisma.MeetingSelect = {
       id: true,
       startDate: true,
-      startTime: true,
       endDate: true,
-      endTime: true,
     };
     // 查询和改用户相关的会议
     const userRelMeetings = await this.prismaService.meeting.findMany({
@@ -136,12 +132,10 @@ export class MeetingService {
     });
     // 判断时间是否有冲突
     const isConflict = userRelMeetings.some((um) => {
-      const fullStartDate = `${um.startDate} ${um.startTime}`;
-      const fullEndDate = `${um.endDate} ${um.endTime}`;
-      const meetingFullStartDate = `${meeting.startDate} ${meeting.startTime}`;
+      const meetingFullStartDate = meeting.startDate;
       return (
-        dayjs(meetingFullStartDate).isAfter(fullStartDate) &&
-        dayjs(meetingFullStartDate).isBefore(fullEndDate)
+        dayjs(meetingFullStartDate).isAfter(um.startDate) &&
+        dayjs(meetingFullStartDate).isBefore(um.endDate)
       );
     });
     return !isConflict;

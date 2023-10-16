@@ -58,12 +58,9 @@ model Meeting {
 	id           Int            @id @default(autoincrement())
 	/// 会议标题
 	title        String         @db.VarChar(60)
-	/// 会议开始时间 YYYY-MM-DD
-	startDate    String         @map("start_date") @db.Char(10)
-	/// 会议开始时间 HH:mm
-	startTime    String         @map("start_time") @db.Char(5)
-	endDate      String         @map("end_date") @db.Char(10)
-	endTime      String         @map("end_time") @db.Char(5)
+	/// 会议开始时间 YYYY-MM-DD HH:mm
+	startDate    String         @map("start_date") @db.Char(16)
+	endDate      String         @map("end_date") @db.Char(16)
 	/// 会议描述
 	description  String?        @db.Text
 	/// 提醒类型
