@@ -91,12 +91,10 @@ export class UserService {
    * @param createUserDto
    */
   async create(createUserDto: CreateUserDto) {
-    const { password, avatar, nickname, ...user } = createUserDto;
+    const { password, ...user } = createUserDto;
     const hashPassword = await this.hashingService.hash(password);
     const userCreateInput: Prisma.UserCreateInput = {
       ...user,
-      nickname: nickname ?? genUserNickname(),
-      avatar: avatar ?? genUserAvatar(nickname),
       password: hashPassword,
       createAt: new Date(),
     };

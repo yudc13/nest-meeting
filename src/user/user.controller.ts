@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -13,10 +14,17 @@ import { UserEntity } from './entity/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
+import { User } from '../common/decorator/user.decorator';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get()
+  async getUserInfo(@User('userId') userId: number) {
+    const user = await this.userService.findUserById(userId);
+    return new UserEntity(user);
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post()
