@@ -18,6 +18,8 @@ import { RoomModule } from './room/room.module';
 import { MeetingModule } from './meeting/meeting.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { ChatModule } from './chat/chat.module';
+import { LogInterceptor } from './common/interceptor/log.interceptor';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -29,6 +31,7 @@ import { ChatModule } from './chat/chat.module';
     MeetingModule,
     GatewayModule,
     ChatModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [
@@ -37,6 +40,10 @@ import { ChatModule } from './chat/chat.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LogInterceptor,
     },
     {
       provide: APP_GUARD,

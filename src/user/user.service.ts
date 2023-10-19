@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { Prisma } from '@prisma/client';
 import { HashingService } from '../hashing/hashing.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { genUserAvatar, genUserNickname, getPageParams } from '../utils';
+import { getPageParams } from '../utils';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 

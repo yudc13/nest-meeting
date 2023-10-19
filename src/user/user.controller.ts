@@ -15,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { User } from '../common/decorator/user.decorator';
+import { Log, LOG_ACTION } from '../common/decorator/log.decorator';
 
 @Controller('user')
 export class UserController {
@@ -44,6 +45,11 @@ export class UserController {
   }
 
   @Put(':userId')
+  @Log(LOG_ACTION.UPDATE, `编辑用户：`, {
+    userId: '用户ID',
+    nickname: '用户昵称',
+    email: '用户邮箱',
+  })
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
     @Param('userId') userId: number,

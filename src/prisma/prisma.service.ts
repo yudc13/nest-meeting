@@ -11,15 +11,15 @@ export class PrismaService
   extends PrismaClient<Prisma.PrismaClientOptions, 'query'>
   implements OnModuleInit, OnModuleDestroy
 {
-  private readonly logger: Logger = new Logger(PrismaService.name);
+  private readonly _logger: Logger = new Logger(PrismaService.name);
   constructor() {
     super({
       log: [{ level: 'query', emit: 'event' }],
     });
     this.$on('query', (e) => {
-      this.logger.log('Query: ' + e.query);
-      this.logger.log('Params: ' + e.params);
-      this.logger.log('Duration: ' + e.duration + 'ms');
+      this._logger.log('Query: ' + e.query);
+      this._logger.log('Params: ' + e.params);
+      this._logger.log('Duration: ' + e.duration + 'ms');
     });
   }
 
