@@ -10,7 +10,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { HashingModule } from './hashing/hashing.module';
 import { BcryptService } from './bcrypt/bcrypt.service';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { AccessTokenGuard } from './auth/guard/access-token.guard';
 import { JwtMiddleware } from './common/middleware/jwt.middleware';
@@ -20,6 +20,7 @@ import { GatewayModule } from './gateway/gateway.module';
 import { ChatModule } from './chat/chat.module';
 import { LogInterceptor } from './common/interceptor/log.interceptor';
 import { LoggerModule } from './logger/logger.module';
+import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 
 @Module({
   imports: [
@@ -44,6 +45,10 @@ import { LoggerModule } from './logger/logger.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: LogInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
     {
       provide: APP_GUARD,
